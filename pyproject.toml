@@ -1,0 +1,27 @@
+[project]
+name = "cifra-spotify"
+version = "0.1.0"
+description = ""
+authors = [
+    {name = "rodrigoneal",email = "rodrigho2006@gmail.com"}
+]
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "httpx (>=0.28.1,<0.29.0)",
+    "python-dotenv (>=1.2.1,<2.0.0)",
+    "fastapi[standard] (>=0.121.2,<0.122.0)"
+]
+
+[tool.poetry]
+packages = [{include = "cifra_spotify", from = "src"}]
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[dependency-groups]
+lint = [
+    "isort (>=7.0.0,<8.0.0)",
+    "ruff (>=0.14.5,<0.15.0)"
+]
