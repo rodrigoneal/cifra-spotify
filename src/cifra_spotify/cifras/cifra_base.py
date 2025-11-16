@@ -2,11 +2,11 @@ from abc import ABC
 from enum import Enum
 
 
-class Instruments(Enum):
-    GUITAR: str = "guitar"
-    KEYBOARD: str = "keyboard"
-    CAVACO: str = "cavaco"
-    UKULELE: str = "ukulele"
+class Instruments(str, Enum):
+    GUITAR = "guitar"
+    KEYBOARD = "keyboard"
+    CAVACO = "cavaco"
+    UKULELE = "ukulele"
 
 
 class Cifra(ABC):

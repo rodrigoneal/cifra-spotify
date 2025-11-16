@@ -4,11 +4,11 @@ from typing import Annotated
 from fastapi import APIRouter, HTTPException, Query
 
 from src.cifra_spotify.api.deps import SPOTIFYDEPS
-from src.cifra_spotify.app.custom_exceptions.exceptions import (
-    CurrentTrackNotFoundException,
-)
+from src.cifra_spotify.app.custom_exceptions.exceptions import \
+    CurrentTrackNotFoundException
 from src.cifra_spotify.app.schemas.track_schema import SpotifyCurrentlyPlaying
-from src.cifra_spotify.app.schemas.track_search_schema import SpotifyTrackSearchResponse
+from src.cifra_spotify.app.schemas.track_search_schema import \
+    SpotifyTrackSearchResponse
 
 router = APIRouter(prefix="/api/track", tags=["TRACK"])
 

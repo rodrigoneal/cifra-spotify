@@ -1,17 +1,12 @@
-import os
-
-from dotenv import load_dotenv
+from src.cifra_spotify.app.core.config import settings
 
 from .auth import SpotifyAuth
 from .spotify import SpotifyAPI
 
-load_dotenv(override=True)
-
-
 spotify_auth = SpotifyAuth(
-    client_id=os.getenv("SPOTIFY_CLIENT_ID"),
-    client_secret=os.getenv("SPOTIFY_CLIENT_SECRET"),
-    redirect_uri=os.getenv("SPOTIFY_REDIRECT_URI"),
+    client_id=settings.SPOTIFY_CLIENT_ID,
+    client_secret=settings.SPOTIFY_CLIENT_SECRET,
+    redirect_uri=settings.SPOTIFY_REDIRECT_URI,
 )
 
 

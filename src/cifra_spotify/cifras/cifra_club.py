@@ -3,6 +3,7 @@ import asyncio
 import httpx
 from weasyprint import HTML
 
+from src.cifra_spotify.app.core.logger import logger
 from src.cifra_spotify.cifras.cifra_base import Cifra, Instruments
 from src.cifra_spotify.types import cifra as cifra_type
 
@@ -23,7 +24,7 @@ class CifraClub(Cifra):
 
     async def _fetch_page(self, uri: str) -> httpx.Response:
         url = self.url_base + uri
-        print(url)
+        logger.info(f"Fetching page: {url}")
         return await self.client.get(url, follow_redirects=True)
 
     def _build_url(
@@ -34,8 +35,9 @@ class CifraClub(Cifra):
     ):
         singer = slugify_cifraclub(singer)
         music = slugify_cifraclub(music)
-        instrument = instrument.value.lower()
-        return f"{singer}/{music}/#instrument={instrument}"
+        instrument_str  = instrument.value.lower()
+        logger.debug(f"Building URL: {singer}/{music}/#instrument={instrument_str}")
+        return f"{singer}/{music}/#instrument={instrument_str}"
 
     async def _fetch_cifra(
         self,
@@ -44,10 +46,12 @@ class CifraClub(Cifra):
         tabs: bool,
         instrument: Instruments = Instruments.GUITAR,
     ):
+        logger.info(f"Fetching cifra: {singer} - {music}")
         response = await self._fetch_page(self._build_url(singer, music, instrument))
         return parse_cifra_page(response, tabs)
 
     def _generate_pdf(self, html: str):
+        logger.debug("Generating PDF...")
         return HTML(string=html).write_pdf()
 
     async def generate_html(
@@ -63,6 +67,7 @@ class CifraClub(Cifra):
             musics = medley_splitter(music)
         else:
             musics = [music]
+        
         cifras = await asyncio.gather(
             *[
                 self._fetch_cifra(
@@ -71,10 +76,12 @@ class CifraClub(Cifra):
                 for music in musics
             ]
         )
+        logger.info("Rendering HTML...")
         return render_html_document(cifras)
 
     async def generate_pdf(
         self,
         html: str,
     ) -> bytes:
+        logger.info("Generating PDF...")
         return await asyncio.to_thread(self._generate_pdf, html)

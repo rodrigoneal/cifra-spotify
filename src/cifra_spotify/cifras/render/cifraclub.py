@@ -1,7 +1,9 @@
+from src.cifra_spotify.app.core.logger import logger
 from src.cifra_spotify.types import cifra as cifra_type
 
 
 def _render_header() -> str:
+    logger.debug("Rendering header...")
     return """
     <html>
     <head>
@@ -69,6 +71,7 @@ def _render_header() -> str:
 
 
 def _render_song_section(music_name: str, tom: str, cifra: str) -> str:
+    logger.debug("Rendering song section...")
     return f"""
     <div class="musica">
         <div class="titulo">{music_name}</div>
@@ -80,6 +83,7 @@ def _render_song_section(music_name: str, tom: str, cifra: str) -> str:
 
 
 def _render_footer() -> str:
+    logger.debug("Rendering footer...")
     return """
     </div>
     </body>
@@ -91,7 +95,8 @@ def render_html_document(songs: list[cifra_type.CifraType]) -> str:
     html = _render_header()
 
     for song in songs:
+        logger.debug(f"Rendering song: {song['music_name']}")
         html += _render_song_section(song["music_name"], song["tom"], song["cifra"])
-
+    
     html += _render_footer()
     return html

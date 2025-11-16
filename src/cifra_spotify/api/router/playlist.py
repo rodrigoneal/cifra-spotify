@@ -3,21 +3,20 @@ from typing import Annotated
 from fastapi import APIRouter, Query, status
 
 from src.cifra_spotify.api.deps import SPOTIFYDEPS
-from src.cifra_spotify.app.custom_exceptions.exceptions import PlaylistSeachException
-from src.cifra_spotify.app.schemas.search_schema import (
-    PlaylistsResponse,
-    SpotifySearchResponse,
-)
+from src.cifra_spotify.app.custom_exceptions.exceptions import \
+    PlaylistSeachException
+from src.cifra_spotify.app.schemas.search_schema import (PlaylistsResponse,
+                                                         SpotifySearchResponse)
 
 router = APIRouter(prefix="/api/playlist", tags=["PLAYLIST"])
 
 
 @router.get("/search_playlist", response_model=SpotifySearchResponse)
 async def search_playlist(
+    spotify: SPOTIFYDEPS,
     name: Annotated[str, Query(..., description="Nome da playlist")],
     limit: Annotated[int, Query(..., description="Limite de resultados")] = 10,
     offset: Annotated[int, Query(..., description="Offset de resultados")] = 0,
-    spotify: SPOTIFYDEPS = None,
 ):
     """
     Search playlists on Spotify.

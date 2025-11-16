@@ -2,7 +2,10 @@ import os
 import time
 import urllib.parse
 
+from src.cifra_spotify.app.custom_exceptions.exceptions import UserNotAuthenticatedException
 import httpx
+
+from src.cifra_spotify.app.core.logger import logger
 
 
 class SpotifyAuth:
@@ -22,11 +25,14 @@ class SpotifyAuth:
         self._load_from_file()
 
     def _save_to_file(self):
+        logger.info("Saving token to file...")
         with open(self.TOKEN_FILE, "w") as f:
             f.write(f"{self.access_token}\n{self.refresh_token}\n{self.expires_at}")
 
     def _load_from_file(self):
+        logger.info("Loading token from file...")
         if not os.path.exists(self.TOKEN_FILE):
+            logger.info("Token file not found.")
             return
 
         with open(self.TOKEN_FILE, "r") as f:
@@ -35,6 +41,8 @@ class SpotifyAuth:
                 self.access_token = lines[0]
                 self.refresh_token = lines[1]
                 self.expires_at = float(lines[2])
+
+        logger.info("Token loaded from file.")
 
     def get_login_url(
         self, scopes: str = "user-read-currently-playing user-read-playback-state"
@@ -45,6 +53,7 @@ class SpotifyAuth:
             "redirect_uri": self.redirect_uri,
             "scope": scopes,
         }
+        logger.debug("Generating login URL...")
         return f"{self.AUTH_URL}?{urllib.parse.urlencode(params)}"
 
     async def exchange_code_for_token(self, code: str):
@@ -59,6 +68,7 @@ class SpotifyAuth:
                     "client_secret": self.client_secret,
                 },
             )
+        logger.info("Exchanging code for token...")
 
         data = resp.json()
         self.access_token = data["access_token"]
@@ -66,9 +76,11 @@ class SpotifyAuth:
         self.expires_at = time.time() + data["expires_in"]
 
         self._save_to_file()
+        logger.info("Tokens obtained.")
         return data
 
     async def refresh_access_token(self):
+        logger.info("Refreshing access token...")
         async with httpx.AsyncClient() as client:
             resp = await client.post(
                 self.TOKEN_URL,
@@ -79,6 +91,11 @@ class SpotifyAuth:
                     "client_secret": self.client_secret,
                 },
             )
+        if resp.status_code != 200:
+            logger.error("Failed to refresh access token.")
+            raise Exception("Failed to refresh access token.")
+
+        logger.info("Access token refreshed.")
 
         data = resp.json()
         self.access_token = data["access_token"]
@@ -91,10 +108,16 @@ class SpotifyAuth:
         return data
 
     async def ensure_token(self):
+        logger.debug("Ensuring access token...")
         if not self.access_token:
-            raise Exception("Usuário não autenticado.")
+            logger.error("User not authenticated.")
+            raise UserNotAuthenticatedException("User not authenticated.", 401)
 
         if time.time() >= self.expires_at - 5:
+            logger.info("Access token expired. Refreshing...")
             await self.refresh_access_token()
+            logger.info("Access token refreshed.")
+
+        logger.debug("Access token obtained.")
 
         return self.access_token

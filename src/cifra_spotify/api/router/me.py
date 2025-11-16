@@ -7,7 +7,7 @@ router = APIRouter(prefix="/api", tags=["ME"])
 
 
 @router.get("/", response_model=SpotifyUser)
-async def me(spotify: SPOTIFYDEPS = None):
+async def me(spotify: SPOTIFYDEPS):
     """
     Return information about the authenticated Spotify user.
 

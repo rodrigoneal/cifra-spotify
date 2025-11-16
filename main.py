@@ -1,9 +1,12 @@
 import asyncio
 import sys
+from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 
+from cifra_spotify.spotify.pooling import SpotifyPollingService
 from src.cifra_spotify.api import register_routers
+from src.cifra_spotify.app.core.logger import logger
 from src.cifra_spotify.app.custom_exceptions import register_exception_handlers
 
 try:
@@ -12,9 +15,22 @@ except ImportError:
     uvloop = None
 
 if uvloop and sys.platform != "win32":
-    # cria um loop uvloop explícito
+    logger.info("Using uvloop")
     loop = uvloop.new_event_loop()
     asyncio.set_event_loop(loop)
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    logger.info("Starting application...")
+    from src.cifra_spotify.api.deps import spotify
+
+    app.state.poller = SpotifyPollingService(spotify)
+    await app.state.poller.start()
+    yield
+    await spotify.aclose()
+    await app.state.poller.stop()
+    logger.info("Application stopped.")
 
 
 def create_app():
@@ -38,6 +54,7 @@ def create_app():
             "automatic chord sheets based on Spotify track metadata."
         ),
         version="1.0.0",
+        lifespan=lifespan,
     )
 
     # Register API routers

@@ -1,11 +1,14 @@
 import re
 import unicodedata
 
+from src.cifra_spotify.app.core.logger import logger
+
 ARTIGOS = {"a", "o", "as", "os", "e"}
 
 
+
 def slugify_cifraclub(text: str) -> str:
-    # remove acentos
+    logger.debug(f"Slugifying: {text}")
     text = unicodedata.normalize("NFD", text)
     text = "".join(c for c in text if not unicodedata.combining(c))
 
