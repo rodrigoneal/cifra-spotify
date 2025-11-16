@@ -8,12 +8,15 @@ possibilitando futuramente integrar e retornar cifras automaticamente.
 
 Este projeto tem como objetivo:
 
--   Obter a música que o usuário está ouvindo atualmente no Spotify\
--   Buscar playlists pelo nome\
--   Listar todas as playlists do usuário autenticado\
--   Obter todas as músicas de qualquer playlist\
--   Integrar com um sistema externo de cifras (como CifraClub ou
-    Ultimate Guitar)\
+-   Obter a música que o usuário está ouvindo atualmente no Spotify
+-   Buscar playlists pelo nome.
+-   Listar todas as playlists do usuário autenticado.
+-   Obter todas as músicas de qualquer playlist.
+-   Integrar com um sistema externo de cifras (como CifraClub,
+    Cifras e BananaCifras).
+-   Download PDF da cifra.
+-   Sincronizar musica tocando no spotify com a cifra.
+-   Criar PDF com todas as cifras de uma playlist.
 -   Criar um fluxo completo para retornar nome da música + artista +
     cifra
 
@@ -57,7 +60,7 @@ E no painel do Spotify Developer:
 
     poetry run fastapi run main.py
 
-Acesse a documentação: `http://127.0.0.1:8000/docs`
+Acesse a documentação: `http://0.0.0.1:8000/docs`
 
 ## 📌 Roadmap
 
@@ -65,7 +68,7 @@ Acesse a documentação: `http://127.0.0.1:8000/docs`
 -   [x] Buscar playlists\
 -   [x] Listar playlists do usuário\
 -   [ ] Buscar faixas de uma playlist\
--   [ ] Sistema de cifras\
+-   [x] Sistema de cifras\
 -   [ ] Interface Web
 ## 📝 Contribua
 
@@ -77,3 +80,15 @@ Acesse a documentação: `http://127.0.0.1:8000/docs`
 -   [ ] Adicionar CI/CD
 -   [ ] Adicionar deploy
 -   [ ] Adicionar logger
+
+
+## Disclaimer
+
+Esse projeto foi desenvolvido com o intuito de aprendizado e
+desenvolvimento pessoal.
+
+Meu objetivo principal é só atender uma demanda pessoal que estou aprendendo a tocar banjo e preciso ficar sempre procurando a musica que está tocando no spotify nos sites de cifras.
+
+Não tenho a pretenção de sincronizar o tempo da musica com a cifra como faz o site Ultimate Guitar ou algo similar.
+
+Acabei me empolgando e criando rotas para o spotify que não tem nada a ver com o meu objetivo primario, mas é bom que fica caso alguém precise do spotify para algo.
