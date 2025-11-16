@@ -1,3 +1,4 @@
+from typing import Annotated
 import httpx
 
 from .auth import SpotifyAuth
@@ -26,21 +27,21 @@ class SpotifyAPI:
     async def get_current_track(self) -> httpx.Response:
         return await self._send_request("me/player/currently-playing")
 
-    async def search_track(self, name: str, limit=10):
-        params = {"q": name, "type": "track", "limit": limit}
-        data = await self._send_request("search", params=params)
+    async def search_track(self, name: str, limit: int = 10, offset: int = 0) -> list:
+        params = {"q": name, "type": "track", "limit": limit, "offset": offset}
+        return await self._send_request("search", params=params)
+        # breakpoint()
+        # tracks = data.get("tracks", {}).get("items", [])
 
-        tracks = data.get("tracks", {}).get("items", [])
-
-        return [
-            {
-                "musica": t["name"],
-                "artista": ", ".join(a["name"] for a in t["artists"]),
-                "album": t["album"]["name"],
-                "id": t["id"],
-            }
-            for t in tracks
-        ]
+        # return [
+        #     {
+        #         "musica": t["name"],
+        #         "artista": ", ".join(a["name"] for a in t["artists"]),
+        #         "album": t["album"]["name"],
+        #         "id": t["id"],
+        #     }
+        #     for t in tracks
+        # ]
 
     async def get_my_playlists(
         self, limit: int = 10, offset: int = 0

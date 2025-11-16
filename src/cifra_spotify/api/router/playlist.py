@@ -19,6 +19,12 @@ async def search_playlist(
     offset: Annotated[int, Query(..., description="Offset de resultados")] = 0,
     spotify: SPOTIFYDEPS = None,
 ):
+    """
+    Search playlists on Spotify.
+
+    This endpoint searches for playlists using the Spotify Web API based on the provided
+    name. Results can be paginated using the `limit` and `offset` parameters.
+    """
     response = await spotify.search_playlist(name=name, limit=limit, offset=offset)
     if response.status_code == status.HTTP_200_OK:
         return SpotifySearchResponse.model_validate(response.json())
@@ -34,6 +40,12 @@ async def my_playlists(
     limit: Annotated[int, Query(..., description="Limite de resultados")] = 10,
     offset: Annotated[int, Query(..., description="Offset de resultados")] = 0,
 ):
+    """
+    Get the authenticated user's playlists.
+
+    This endpoint returns the playlists owned or followed by the logged-in user.
+    Pagination is supported through the `limit` and `offset` parameters.
+    """
     response = await spotify.get_my_playlists(limit=limit, offset=offset)
     if response.status_code != status.HTTP_200_OK:
         raise PlaylistSeachException(

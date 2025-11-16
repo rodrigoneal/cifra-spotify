@@ -7,8 +7,7 @@ from .exceptions import CurrentTrackNotFoundException, PlaylistSeachException
 def current_track_not_found_exception_handler(
     request: Request, exc: CurrentTrackNotFoundException
 ):
-    breakpoint()
-    return JSONResponse()
+    return JSONResponse(content=exc.message, status_code=exc.status_code)
 
 
 def playlist_erro_handler(request: Request, exc: PlaylistSeachException):
