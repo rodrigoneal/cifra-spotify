@@ -1,12 +1,14 @@
 import httpx
-
 from bs4 import BeautifulSoup
+
 from src.cifra_spotify.types import cifra as cifra_type
 
 
 def parse_cifra_page(
     response: httpx.Response, tabs: bool = False
 ) -> cifra_type.CifraType:
+    with open("test.html", "w") as file:
+        file.write(response.text)
     soup = BeautifulSoup(response.text, "html.parser")
     tom_musica = soup.find("span", id="cifra_tom")
     tom_texto = tom_musica.get_text(strip=True) if tom_musica else ""

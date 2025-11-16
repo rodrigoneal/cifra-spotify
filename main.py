@@ -1,7 +1,20 @@
+import asyncio
+import sys
+
 from fastapi import FastAPI
 
 from src.cifra_spotify.api import register_routers
 from src.cifra_spotify.app.custom_exceptions import register_exception_handlers
+
+try:
+    import uvloop
+except ImportError:
+    uvloop = None
+
+if uvloop and sys.platform != "win32":
+    # cria um loop uvloop explícito
+    loop = uvloop.new_event_loop()
+    asyncio.set_event_loop(loop)
 
 
 def create_app():

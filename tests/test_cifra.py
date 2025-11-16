@@ -16,10 +16,13 @@ async def test_se_pega_a_cifra_cifra_club():
 @pytest.mark.asyncio
 async def test_se_pega_a_cifra_pdf():
     cifra_club = CifraClub()
-    cifra = await cifra_club.generate_pdf(
+    html = await cifra_club.generate_html(
         "Arlindo Cruz", "Trilha do Amor", Instruments.CAVACO, tabs=True
     )
-    assert cifra.startswith(b"%PDF-1.7")
+    pdf = await cifra_club.generate_pdf(html)
+    assert pdf.startswith(b"%PDF-1.7")
+    with open("test.pdf", "wb") as file:
+        file.write(pdf)
 
 
 @pytest.mark.asyncio
@@ -29,3 +32,17 @@ async def test_se_pega_a_cifra_pdf_com_tabs():
         "Arlindo Cruz", "Trilha do Amor", Instruments.CAVACO, tabs=True
     )
     assert "B|-3--5" in cifra
+
+
+@pytest.mark.asyncio
+async def test_se_traz_as_cifras_do_medley():
+    cifra_club = CifraClub()
+    cifra = await cifra_club.generate_html(
+        "ExaltaSamba musicas",
+        "Gamei/ Azul Sem Fim / Até o Sol Quis Ver / A Carta",
+        Instruments.CAVACO,
+        tabs=False,
+    )
+    pdf = await cifra_club.generate_pdf(cifra)
+    with open("test.pdf", "wb") as file:
+        file.write(pdf)

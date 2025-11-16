@@ -1,7 +1,7 @@
 from fastapi import APIRouter
 
-from src.cifra_spotify.app.schemas.me_schema import SpotifyUser
 from src.cifra_spotify.api.deps import SPOTIFYDEPS
+from src.cifra_spotify.app.schemas.me_schema import SpotifyUser
 
 router = APIRouter(prefix="/api", tags=["ME"])
 

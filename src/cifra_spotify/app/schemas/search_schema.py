@@ -1,4 +1,5 @@
 from typing import List, Optional
+
 from pydantic import BaseModel
 
 
@@ -68,6 +69,7 @@ class Playlist(BaseModel):
     tracks: TracksInfo
     type: str
     uri: str
+
 
 class SpotifySearchResponse(BaseModel):
     playlists: Playlists

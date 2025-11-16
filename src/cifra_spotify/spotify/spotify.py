@@ -1,4 +1,3 @@
-from typing import Annotated
 import httpx
 
 from .auth import SpotifyAuth

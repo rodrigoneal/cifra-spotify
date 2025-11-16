@@ -1,9 +1,14 @@
-from .render.cifraclub import render_html_document
-from .parsers.cifraclub import parse_cifra_page
-from src.cifra_spotify.types import cifra as cifra_type
+import asyncio
+
 import httpx
 from weasyprint import HTML
+
 from src.cifra_spotify.cifras.cifra_base import Cifra, Instruments
+from src.cifra_spotify.types import cifra as cifra_type
+
+from .parsers.cifraclub import parse_cifra_page
+from .render.cifraclub import render_html_document
+from .util import slugify_cifraclub
 
 
 def divisor_medley_default(music_name: str, divisor: str = "/") -> list[str]:
@@ -13,10 +18,13 @@ def divisor_medley_default(music_name: str, divisor: str = "/") -> list[str]:
 class CifraClub(Cifra):
     url_base = "https://cifraclub.com.br/"
 
+    def __init__(self):
+        self.client = httpx.AsyncClient(timeout=10, follow_redirects=True)
+
     async def _fetch_page(self, uri: str) -> httpx.Response:
-        async with httpx.AsyncClient() as client:
-            url = self.url_base + uri
-            return await client.get(url, follow_redirects=True)
+        url = self.url_base + uri
+        print(url)
+        return await self.client.get(url, follow_redirects=True)
 
     def _build_url(
         self,
@@ -24,8 +32,8 @@ class CifraClub(Cifra):
         music: str,
         instrument: Instruments = Instruments.GUITAR,
     ):
-        singer = singer.replace(" ", "-").lower()
-        music = music.replace(" ", "-").lower()
+        singer = slugify_cifraclub(singer)
+        music = slugify_cifraclub(music)
         instrument = instrument.value.lower()
         return f"{singer}/{music}/#instrument={instrument}"
 
@@ -55,22 +63,18 @@ class CifraClub(Cifra):
             musics = medley_splitter(music)
         else:
             musics = [music]
-        for music in musics:
-            cifra = await self._fetch_cifra(
-                singer=singer, music=music, tabs=tabs, instrument=instrument
-            )
-            cifras.append(cifra)
+        cifras = await asyncio.gather(
+            *[
+                self._fetch_cifra(
+                    singer=singer, music=music, tabs=tabs, instrument=instrument
+                )
+                for music in musics
+            ]
+        )
         return render_html_document(cifras)
 
     async def generate_pdf(
         self,
-        singer: str,
-        music: str,
-        instrument: Instruments = Instruments.GUITAR,
-        tabs: bool = True,
-        medley_splitter: cifra_type.MedleySplitter | None = divisor_medley_default,
+        html: str,
     ) -> bytes:
-        html = await self.generate_html(
-            singer, music, instrument, tabs, medley_splitter
-        )
-        return self._generate_pdf(html)
+        return await asyncio.to_thread(self._generate_pdf, html)
