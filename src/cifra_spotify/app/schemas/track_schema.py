@@ -1,4 +1,4 @@
-from typing import List, Literal, Optional
+from typing import List, Literal
 
 from pydantic import BaseModel
 
@@ -11,6 +11,17 @@ class Image(BaseModel):
     height: int
     url: str
     width: int
+    
+
+class Device(BaseModel):
+    id: str
+    is_active: bool
+    is_private_session: bool
+    is_restricted: bool
+    name: str
+    type: str
+    volume_percent: int
+    supports_volume: bool
 
 
 class Artist(BaseModel):
@@ -39,13 +50,13 @@ class Album(BaseModel):
 
 
 class ExternalIds(BaseModel):
-    isrc: Optional[str] = None
+    isrc: str|None = None
 
 
 class TrackItem(BaseModel):
     album: Album
-    artists: List[Artist]
-    available_markets: List[str]
+    artists: list[Artist]
+    available_markets: list[str]
     disc_number: int
     duration_ms: int
     explicit: bool
@@ -56,7 +67,7 @@ class TrackItem(BaseModel):
     is_local: bool
     name: str
     popularity: int
-    preview_url: Optional[str]
+    preview_url: str | None = None
     track_number: int
     type: str
     uri: str
@@ -70,24 +81,26 @@ class Context(BaseModel):
 
 
 class Disallows(BaseModel):
-    pausing: Optional[bool] = None
-    skipping_prev: Optional[bool] = None
+    pausing: bool | None = None
+    skipping_prev: bool | None = None
 
 
 class Actions(BaseModel):
-    disallows: Disallows
+    pausing: bool | None = None
+    skipping_prev: bool | None = None
 
 
 class SpotifyCurrentlyPlaying(BaseModel):
-    is_playing: bool
-    timestamp: int
-    context: Optional[Context] = None
-    progress_ms: Optional[int] = None
-    item: Optional[TrackItem] = None
-    currently_playing_type: str
-    actions: Optional[Actions] = None
+    is_playing: bool = False
+    timestamp: int = 0
+    context: Context | None = None
+    progress_ms: int | None = None
+    item: TrackItem | None = None
+    currently_playing_type: str = "track"
+    actions: Actions | None = None
+    device: Device | None = None
 
 
-class CurrentTrackNotFound(BaseModel):
-    is_playing: Literal[False] = False
-    currently_playing_type: Literal["track"] = "track"
+# class CurrentTrackNotFound(BaseModel):
+#     is_playing: Literal[False] = False
+#     currently_playing_type: Literal["track"] = "track"

@@ -9,6 +9,7 @@ class Settings(BaseSettings):
     SPOTIFY_CLIENT_ID: str | None = None
     SPOTIFY_CLIENT_SECRET: str | None = None
     SPOTIFY_REDIRECT_URI: str | None = None
+    TOKEN_KEY: str | None = None
 
 
 settings = Settings()

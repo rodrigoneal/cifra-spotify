@@ -4,7 +4,6 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 
-from cifra_spotify.spotify.pooling import SpotifyPollingService
 from src.cifra_spotify.api import register_routers
 from src.cifra_spotify.app.core.logger import logger
 from src.cifra_spotify.app.custom_exceptions import register_exception_handlers
@@ -22,15 +21,15 @@ if uvloop and sys.platform != "win32":
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    logger.info("Starting application...")
-    from src.cifra_spotify.api.deps import spotify
+    # logger.info("Starting application...")
+    # from src.cifra_spotify.api.deps import spotify
 
-    app.state.poller = SpotifyPollingService(spotify)
-    await app.state.poller.start()
+    # app.state.poller = SpotifyPollingService(spotify)
+    # await app.state.poller.start()
     yield
-    await spotify.aclose()
-    await app.state.poller.stop()
-    logger.info("Application stopped.")
+    # await spotify.aclose()
+    # await app.state.poller.stop()
+    # logger.info("Application stopped.")
 
 
 def create_app():
