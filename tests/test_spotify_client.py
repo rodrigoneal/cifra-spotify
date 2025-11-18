@@ -1,13 +1,12 @@
-from src.cifra_spotify.app.schemas.track_schema import SpotifyCurrentlyPlaying
-import pytest
-import httpx
 from unittest.mock import AsyncMock, MagicMock
 
+import httpx
+import pytest
 from tenacity import RetryError
 
-from src.cifra_spotify.spotify.clients.spotify_client import SpotifyClient
 from src.cifra_spotify.app.custom_exceptions.exceptions import AuthRetry
-from src.cifra_spotify.spotify.clients.spotify_api import SpotifyAPI
+from src.cifra_spotify.app.schemas.track_schema import SpotifyCurrentlyPlaying
+from src.cifra_spotify.spotify.clients.spotify_client import SpotifyClient
 
 
 @pytest.fixture

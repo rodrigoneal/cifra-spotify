@@ -2,15 +2,14 @@ import asyncio
 import inspect
 from typing import Callable
 
-from src.cifra_spotify.app.custom_exceptions.exceptions import (
-    UserNotAuthenticatedException,
-)
 import httpx
 
 from cifra_spotify.app.core.config import settings
 from src.cifra_spotify.app.core.logger import logger
-
-from .spotify import SpotifyAPI
+from src.cifra_spotify.app.custom_exceptions.exceptions import (
+    UserNotAuthenticatedException,
+)
+from src.cifra_spotify.spotify.clients.spotify import Spotify
 
 HOOKSTYPE = Callable[[dict], None]
 

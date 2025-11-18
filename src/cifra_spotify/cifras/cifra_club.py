@@ -35,7 +35,7 @@ class CifraClub(Cifra):
     ):
         singer = slugify_cifraclub(singer)
         music = slugify_cifraclub(music)
-        instrument_str  = instrument.value.lower()
+        instrument_str = instrument.value.lower()
         logger.debug(f"Building URL: {singer}/{music}/#instrument={instrument_str}")
         return f"{singer}/{music}/#instrument={instrument_str}"
 
@@ -67,7 +67,7 @@ class CifraClub(Cifra):
             musics = medley_splitter(music)
         else:
             musics = [music]
-        
+
         cifras = await asyncio.gather(
             *[
                 self._fetch_cifra(

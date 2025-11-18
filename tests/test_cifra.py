@@ -1,14 +1,8 @@
-import asyncio
-import pytest
 import httpx
+import pytest
 
-from src.cifra_spotify.cifras.cifra_club import CifraClub, divisor_medley_default
 from src.cifra_spotify.cifras.cifra_base import Instruments
-
-from src.cifra_spotify.cifras.parsers.cifraclub import parse_cifra_page
-from src.cifra_spotify.cifras.render.cifraclub import render_html_document
-
-
+from src.cifra_spotify.cifras.cifra_club import CifraClub, divisor_medley_default
 
 
 def test_divisor_medley_default():
@@ -22,6 +16,7 @@ def test_build_url(monkeypatch):
     url = cifra._build_url("ExaltaSamba", "Tá Vendo Aquela Lua", Instruments.GUITAR)
 
     assert url == "exaltasamba/ta-vendo-aquela-lua/#instrument=guitar"
+
 
 @pytest.mark.asyncio
 async def test_fetch_page(monkeypatch):
@@ -38,9 +33,9 @@ async def test_fetch_page(monkeypatch):
     assert response.status_code == 200
     assert "<html>" in response.text
 
+
 @pytest.mark.asyncio
 async def test_fetch_cifra(monkeypatch):
-
     async def mock_fetch_page(*args, **kwargs):
         return httpx.Response(
             200, text="<div class='cifra'>OK</div><h1 class='t1'>Lua</h1><pre>OK</pre>"

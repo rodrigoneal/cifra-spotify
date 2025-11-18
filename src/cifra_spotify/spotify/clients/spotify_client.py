@@ -1,7 +1,6 @@
 import httpx
 from fastapi import status
 
-
 from src.cifra_spotify.app.core.logger import logger
 from src.cifra_spotify.app.custom_exceptions.exceptions import AuthRetry
 from src.cifra_spotify.app.schemas.me_schema import SpotifyUser

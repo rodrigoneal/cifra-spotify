@@ -2,11 +2,13 @@ import asyncio
 import inspect
 from typing import Callable
 
-from src.cifra_spotify.app.custom_exceptions.exceptions import UserNotAuthenticatedException
 import httpx
 
 from cifra_spotify.app.core.config import settings
 from src.cifra_spotify.app.core.logger import logger
+from src.cifra_spotify.app.custom_exceptions.exceptions import (
+    UserNotAuthenticatedException,
+)
 
 from .spotify import SpotifyAPI
 
@@ -92,7 +94,7 @@ class SpotifyPollingService:
         while self._running:
             try:
                 await self._tick()
-            except  UserNotAuthenticatedException as exc:
+            except UserNotAuthenticatedException as exc:
                 logger.error(f"[Polling] Error: {exc}", exc_info=True)
                 self._interval = self.max_interval
             except Exception as exc:
@@ -172,7 +174,6 @@ class SpotifyPollingService:
         except Exception as exc:
             logger.error(f"[Webhook] Error: {exc}", exc_info=True)
 
-
     def add_hook(self, event: str, callback: HOOKSTYPES):
         """
         Registra um callback para um dos eventos:
@@ -196,9 +197,7 @@ class SpotifyPollingService:
     async def _fire(self, hooks: list[HOOKSTYPES], data: dict):
         for hook in hooks:
             await self._fire_async(hook, data)
-                
-    
-    
+
     async def _fire_async(self, hook, data):
         try:
             if inspect.iscoroutinefunction(hook):

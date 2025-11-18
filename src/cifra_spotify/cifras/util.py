@@ -6,7 +6,6 @@ from src.cifra_spotify.app.core.logger import logger
 ARTIGOS = {"a", "o", "as", "os", "e"}
 
 
-
 def slugify_cifraclub(text: str) -> str:
     logger.debug(f"Slugifying: {text}")
     text = unicodedata.normalize("NFD", text)

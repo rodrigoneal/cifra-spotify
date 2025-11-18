@@ -3,7 +3,6 @@ from typing import Any
 import httpx
 
 from src.cifra_spotify.app.core.logger import logger
-
 from src.cifra_spotify.spotify.clients.spotify_auth import SpotifyAuth
 
 

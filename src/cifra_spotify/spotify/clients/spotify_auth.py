@@ -1,27 +1,24 @@
-import asyncio
+from __future__ import annotations
+
 import json
 import time
 import urllib.parse
 from pathlib import Path
+from typing import TYPE_CHECKING
 
-import aiofiles
-import aiofiles.os
+if TYPE_CHECKING:
+    from src.cifra_spotify.spotify.clients.spotify_token_storage import (
+        SpotifyTokenStorage,
+    )
+
 import httpx
-from cryptography.fernet import Fernet, InvalidToken
 
-from src.cifra_spotify.app.core.config import settings
 from src.cifra_spotify.app.core.logger import logger
 from src.cifra_spotify.app.custom_exceptions.exceptions import (
-    InvalidFileFormatException,
     SpotifyAuthException,
     UserNotAuthenticatedException,
 )
-from src.cifra_spotify.app.schemas.token import TokenData
-
-_file_lock = asyncio.Lock()
-
-key = settings.TOKEN_KEY.encode("utf-8")
-cipher = Fernet(key)
+from src.cifra_spotify.app.schemas.auth_schema import SpotifyToken
 
 
 class SpotifyAuth:
@@ -35,6 +32,7 @@ class SpotifyAuth:
     def __init__(
         self,
         client: httpx.AsyncClient,
+        storage: "SpotifyTokenStorage",
         client_id: str,
         client_secret: str,
         redirect_uri: str,
@@ -44,84 +42,17 @@ class SpotifyAuth:
         self.client_secret = client_secret
         self.redirect_uri = redirect_uri
 
-        self._access_token = None
+        self.access_token = None
         self.refresh_token = None
         self.expires_in = None
-
-    @property
-    def access_token(self):
-        return self._access_token
-
-    @access_token.setter
-    def access_token(self, value):
-        raise AttributeError("Token de acesso nao pode ser atribuido diretamente.")
+        self.storage: SpotifyTokenStorage = storage
 
     async def init(self):
-        await self._load_from_file()
-
-    async def _delete_file(self):
-        async with _file_lock:
-            try:
-                await aiofiles.os.remove(self.TOKEN_FILE)
-                logger.debug(f"[SpotifyClient] Arquivo {self.TOKEN_FILE} removido.")
-            except FileNotFoundError:
-                logger.debug(f"[SpotifyClient] Arquivo {self.TOKEN_FILE} não existe para remover.")
-
-    async def _save_to_file(self):
-        logger.debug("[SpotifyClient] Salvando token no arquivo...")
-        async with _file_lock:
-            async with aiofiles.open(self.TOKEN_FILE, "wb") as f:
-                await f.write(
-                    cipher.encrypt(
-                        f"{self.access_token}|{self.refresh_token}|{self.expires_in}".encode(
-                            "utf-8"
-                        )
-                    )
-                )
-
-    async def _load_from_file(self) -> TokenData:
-        logger.debug("[SpotifyClient] Carregando token do arquivo...")
-        if not Path(self.TOKEN_FILE).exists():
-            logger.error(f"Arquivo {self.TOKEN_FILE} não encontrado.")
-            return
-        async with _file_lock:
-            async with aiofiles.open(self.TOKEN_FILE, "rb") as f:
-                try:
-                    content = await f.read()
-                    decrypted = cipher.decrypt(content).decode().split("|")
-                    lines = decrypted
-                    if len(lines) == 3:
-                        self._access_token = lines[0]
-                        self.refresh_token = lines[1]
-                        self.expires_in = float(lines[2])
-
-                        logger.debug("[SpotifyClient] Token carregado do arquivo.")
-                        return TokenData(
-                            access_token=self._access_token,
-                            refresh_token=self.refresh_token,
-                            expires_in=self.expires_in,
-                        )
-                    else:
-                        logger.error(f"[SpotifyClient] Arquivo {self.TOKEN_FILE} inválido.")
-                        raise InvalidFileFormatException(
-                            f"Arquivo {self.TOKEN_FILE} inválido."
-                        )
-                except (ValueError, IndexError) as exc:
-                    breakpoint()
-                    logger.error(f"[SpotifyClient] Arquivo {self.TOKEN_FILE} inválido.")
-                    raise InvalidFileFormatException(
-                        f"Arquivo {self.TOKEN_FILE} inválido."
-                    )
-                except InvalidToken:
-                    logger.error(f"[SpotifyClient] Arquivo {self.TOKEN_FILE} inválido.")
-                    raise InvalidFileFormatException(
-                        f"Arquivo {self.TOKEN_FILE} inválido."
-                    )
-                except Exception as exc:
-                    logger.error(f"[SpotifyClient] Erro ao carregar token: {exc}", exc_info=True)
-                    raise SpotifyAuthException(f"Erro ao carregar token: {exc}")
-
-        logger.debug("[SpotifyClient] Token carregado do arquivo.")
+        data = await self.storage.load()
+        if data:
+            self.access_token = data.access_token
+            self.refresh_token = data.refresh_token
+            self.expires_in = data.expires_in
 
     def get_login_url(
         self, scopes: str = "user-read-currently-playing user-read-playback-state"
@@ -135,7 +66,7 @@ class SpotifyAuth:
         logger.debug("[SpotifyClient] Gerando URL de login...")
         return f"{self.AUTH_URL}?{urllib.parse.urlencode(params)}"
 
-    async def exchange_code_for_token(self, code: str) -> TokenData:
+    async def exchange_code_for_token(self, code: str) -> SpotifyToken:
         resp = await self.client.post(
             self.TOKEN_URL,
             data={
@@ -155,9 +86,13 @@ class SpotifyAuth:
         try:
             content = await resp.aread()
             data = json.loads(content)
-            self._access_token = data["access_token"]
+            self.access_token = data["access_token"]
             self.refresh_token = data.get("refresh_token", self.refresh_token)
             self.expires_in = time.time() + data["expires_in"]
+            token = SpotifyToken(**data)
+            await self.storage.save(token)
+            logger.debug("[SpotifyClient] Token obtido.")
+            return token
         except KeyError as e:
             msg = f"[SpotifyClient] Falha ao abrir token: {e}"
             logger.error(msg)
@@ -167,11 +102,7 @@ class SpotifyAuth:
             logger.error(msg)
             raise SpotifyAuthException(msg)
 
-        await self._save_to_file()
-        logger.debug("[SpotifyClient] Token obtido.")
-        return TokenData(**data)
-
-    async def refresh_access_token(self) -> TokenData:
+    async def refresh_access_token(self) -> SpotifyToken:
         logger.info("[SpotifyClient] Atualizando acesso ao token...")
 
         resp = await self.client.post(
@@ -190,15 +121,17 @@ class SpotifyAuth:
 
         content = await resp.aread()
         data = json.loads(content)
-        self._access_token = data["access_token"]
+        self.access_token = data["access_token"]
         self.expires_in = time.time() + data["expires_in"]
 
         if data.get("refresh_token"):
             self.refresh_token = data["refresh_token"]
-
-        await self._save_to_file()
+        if not data.get("refresh_token"):
+            data["refresh_token"] = self.refresh_token
+        token = SpotifyToken(**data)
+        await self.storage.save(token)
         logger.debug("[SpotifyClient] Acesso ao token atualizado...")
-        return TokenData(**data)
+        return token
 
     async def ensure_token(self) -> str:
         logger.debug("[SpotifyClient] Garantindo acesso ao token...")

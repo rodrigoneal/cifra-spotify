@@ -1,4 +1,4 @@
-from typing import List, Literal
+from typing import List
 
 from pydantic import BaseModel
 
@@ -11,7 +11,7 @@ class Image(BaseModel):
     height: int
     url: str
     width: int
-    
+
 
 class Device(BaseModel):
     id: str
@@ -50,7 +50,7 @@ class Album(BaseModel):
 
 
 class ExternalIds(BaseModel):
-    isrc: str|None = None
+    isrc: str | None = None
 
 
 class TrackItem(BaseModel):

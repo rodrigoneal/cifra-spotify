@@ -1,20 +1,17 @@
 # tests/test_spotify_auth.py
-import asyncio
 import json
 import time
-from pathlib import Path
-
-import pytest
-import httpx
 from unittest.mock import AsyncMock, patch
 
+import httpx
+import pytest
+
 from src.cifra_spotify.app.custom_exceptions.exceptions import (
-    InvalidFileFormatException,
     SpotifyAuthException,
     UserNotAuthenticatedException,
 )
-from src.cifra_spotify.spotify.clients.spotify_auth import SpotifyAuth
 from src.cifra_spotify.app.schemas.token import TokenData
+from src.cifra_spotify.spotify.clients.spotify_auth import SpotifyAuth
 
 
 @pytest.fixture
@@ -72,7 +69,7 @@ async def test_exchange_code_for_token_success(spotify_auth, mock_client):
     fake_response = {
         "access_token": "access456",
         "refresh_token": "refresh456",
-        "expires_in": 4600
+        "expires_in": 4600,
     }
 
     mock_post = AsyncMock()
@@ -94,7 +91,7 @@ async def test_exchange_code_for_token_success(spotify_auth, mock_client):
 @pytest.mark.asyncio
 async def test_exchange_code_for_token_fail(spotify_auth, mock_client):
     mock_client.post.return_value.status_code = 400
-    mock_client.post.return_value.aread = AsyncMock(return_value=b'{}')
+    mock_client.post.return_value.aread = AsyncMock(return_value=b"{}")
 
     with pytest.raises(SpotifyAuthException):
         await spotify_auth.exchange_code_for_token("bad_code")
@@ -106,10 +103,12 @@ async def test_refresh_access_token_success(spotify_auth, mock_client):
     fake_response = {
         "access_token": "new_access",
         "refresh_token": "new_refresh",
-        "expires_in": 3600
+        "expires_in": 3600,
     }
     mock_client.post.return_value.status_code = 200
-    mock_client.post.return_value.aread = AsyncMock(return_value=json.dumps(fake_response).encode())
+    mock_client.post.return_value.aread = AsyncMock(
+        return_value=json.dumps(fake_response).encode()
+    )
 
     token = await spotify_auth.refresh_access_token()
     assert token.access_token == "new_access"
@@ -121,7 +120,7 @@ async def test_refresh_access_token_fail(spotify_auth, mock_client):
     spotify_auth.refresh_token = "refresh456"
     mock_client.post.return_value.status_code = 400
     mock_client.post.return_value.text = "fail"
-    mock_client.post.return_value.aread = AsyncMock(return_value=b'{}')
+    mock_client.post.return_value.aread = AsyncMock(return_value=b"{}")
 
     with pytest.raises(SpotifyAuthException):
         await spotify_auth.refresh_access_token()
@@ -137,10 +136,12 @@ async def test_ensure_token_refresh_if_expired(spotify_auth, mock_client):
     fake_response = {
         "access_token": "new_access",
         "refresh_token": "new_refresh",
-        "expires_in": 3600
+        "expires_in": 3600,
     }
     mock_client.post.return_value.status_code = 200
-    mock_client.post.return_value.aread = AsyncMock(return_value=json.dumps(fake_response).encode())
+    mock_client.post.return_value.aread = AsyncMock(
+        return_value=json.dumps(fake_response).encode()
+    )
 
     token = await spotify_auth.ensure_token()
     assert token == "new_access"
