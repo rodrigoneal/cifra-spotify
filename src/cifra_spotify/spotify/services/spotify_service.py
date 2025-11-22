@@ -1,10 +1,13 @@
+from __future__ import annotations
+
 from src.cifra_spotify.app.core.logger import logger
 from src.cifra_spotify.app.schemas.service_schema import CurrentlyPlaying
-from src.cifra_spotify.spotify.clients.spotify_client import SpotifyClient
+
+# from src.cifra_spotify.spotify.clients.spotify_client import SpotifyClient
 
 
 class SpotifyService:
-    def __init__(self, client: SpotifyClient):
+    def __init__(self, client: "SpotifyClient"):
         self.client = client
 
     async def get_currently_playing(self) -> CurrentlyPlaying:

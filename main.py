@@ -5,11 +5,11 @@ from contextlib import asynccontextmanager
 import httpx
 from fastapi import FastAPI
 
+from cifra_spotify.spotify.clients.spotify_auth import SpotifyAuth
 from src.cifra_spotify.api.routers import register_routers
 from src.cifra_spotify.app.core.config import settings
 from src.cifra_spotify.app.core.logger import logger
 from src.cifra_spotify.app.custom_exceptions import register_exception_handlers
-from src.cifra_spotify.spotify.clients.spotify_auth import SpotifyAuth
 from src.cifra_spotify.spotify.clients.spotify_token_storage import SpotifyTokenStorage
 
 try:

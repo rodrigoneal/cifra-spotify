@@ -9,7 +9,7 @@ class Instruments(str, Enum):
     UKULELE = "ukulele"
 
 
-class Cifra(ABC):
+class CifraBase(ABC):
     async def get_cifra(
         self, singer: str, music: str, instrument: Instruments = Instruments.GUITAR
     ) -> str:
