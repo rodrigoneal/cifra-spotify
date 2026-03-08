@@ -2,10 +2,12 @@ import os
 import time
 import urllib.parse
 
-from src.cifra_spotify.app.custom_exceptions.exceptions import UserNotAuthenticatedException
 import httpx
 
 from src.cifra_spotify.app.core.logger import logger
+from src.cifra_spotify.app.custom_exceptions.exceptions import (
+    UserNotAuthenticatedException,
+)
 
 
 class SpotifyAuth:

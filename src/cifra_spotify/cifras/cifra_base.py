@@ -14,3 +14,8 @@ class Cifra(ABC):
         self, singer: str, music: str, instrument: Instruments = Instruments.GUITAR
     ) -> str:
         raise NotImplementedError
+
+    async def search_cifra_in_ddg(
+        self, singer: str, music: str, instrument: Instruments = Instruments.GUITAR
+    ) -> str:
+        raise NotImplementedError

@@ -1,9 +1,10 @@
-import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
-import httpx
 
-from cifra_spotify.spotify.spotify import SpotifyAPI
+import httpx
+import pytest
+
 from cifra_spotify.spotify.auth import SpotifyAuth
+from cifra_spotify.spotify.spotify import SpotifyAPI
 
 
 @pytest.mark.asyncio
@@ -15,7 +16,9 @@ async def test_send_request():
     api = SpotifyAPI(auth)
 
     mock_response = MagicMock(spec=httpx.Response)
-    with patch.object(api.client, "get", new=AsyncMock(return_value=mock_response)) as mock_get:
+    with patch.object(
+        api.client, "get", new=AsyncMock(return_value=mock_response)
+    ) as mock_get:
         resp = await api._send_request("me", params={"x": "1"})
 
     assert resp is mock_response

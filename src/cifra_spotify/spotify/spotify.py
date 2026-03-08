@@ -139,3 +139,6 @@ class SpotifyAPI:
         """
         logger.info("Closing HTTP client...")
         await self.client.aclose()
+
+    async def get_artist(self, artist_id: str):
+        return await self._send_request(f"/artists/{artist_id}")

@@ -29,7 +29,6 @@ class TrackInfo(BaseModel):
     name: str
     artist: str
     progress_ms: int
-    
 
 
 @router.post("/spotify")

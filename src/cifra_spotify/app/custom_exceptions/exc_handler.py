@@ -3,6 +3,7 @@ from fastapi.responses import JSONResponse
 
 from .exceptions import (
     CurrentTrackNotFoundException,
+    NotPlayeringException,
     PlaylistSeachException,
     UserNotAuthenticatedException,
 )
@@ -21,4 +22,8 @@ def playlist_erro_handler(request: Request, exc: PlaylistSeachException):
 def user_not_authenticated_exception_handler(
     request: Request, exc: UserNotAuthenticatedException
 ):
+    return JSONResponse(content=exc.message, status_code=exc.status_code)
+
+
+async def not_playing_exception(request: Request, exc: NotPlayeringException):
     return JSONResponse(content=exc.message, status_code=exc.status_code)

@@ -97,6 +97,6 @@ def render_html_document(songs: list[cifra_type.CifraType]) -> str:
     for song in songs:
         logger.debug(f"Rendering song: {song['music_name']}")
         html += _render_song_section(song["music_name"], song["tom"], song["cifra"])
-    
+
     html += _render_footer()
     return html

@@ -2,42 +2,20 @@ import asyncio
 import inspect
 from typing import Callable
 
-from src.cifra_spotify.app.custom_exceptions.exceptions import UserNotAuthenticatedException
 import httpx
 
 from cifra_spotify.app.core.config import settings
-from src.cifra_spotify.app.core.logger import logger
-
-from .spotify import SpotifyAPI
+from cifra_spotify.app.core.logger import logger
+from cifra_spotify.app.custom_exceptions.exceptions import (
+    UserNotAuthenticatedException,
+)
+from cifra_spotify.spotify.spotify import SpotifyAPI
 
 HOOKSTYPES = Callable[[dict], None]
-
-# ---------------------------------------------
-# EVENTOS DISPONÍVEIS
-# ---------------------------------------------
 EVENT_TYPES = ("start", "change", "stop")
 
 
 class SpotifyPollingService:
-    """
-    Serviço de polling do Spotify.
-
-    EVENTOS DISPONÍVEIS:
-
-    • "start"  → disparado quando a primeira música começa a tocar.
-    • "change" → disparado quando o usuário troca de música.
-    • "stop"   → disparado quando a música para de tocar.
-
-    Todos os eventos recebem um dicionário com:
-
-    {
-        "id": "track_id",
-        "name": "Nome da música",
-        "artist": "Artista principal",
-        "progress_ms": 123456   # tempo atual da música em milissegundos
-    }
-    """
-
     def __init__(
         self,
         api: SpotifyAPI,
@@ -60,7 +38,7 @@ class SpotifyPollingService:
         self._current_track_id: str | None = None
         self._running = False
         self._task: asyncio.Task | None = None
-        self._http = httpx.AsyncClient(timeout=10)
+        self._http: httpx.AsyncClient | None = None
 
     @staticmethod
     def _ensure_list(value):
@@ -71,11 +49,13 @@ class SpotifyPollingService:
         return [value]
 
     async def start(self):
-        logger.info("[Polling] Starting...")
         if self._running:
+            logger.info("[Polling] Already running.")
             return
 
+        logger.info("[Polling] Starting...")
         self._running = True
+        self._http = httpx.AsyncClient(timeout=10)
         self._task = asyncio.create_task(self._run())
 
     async def stop(self):
@@ -84,19 +64,28 @@ class SpotifyPollingService:
 
         if self._task:
             self._task.cancel()
+            try:
+                await self._task
+            except asyncio.CancelledError:
+                pass
 
-        await self._http.aclose()
+        if self._http:
+            await self._http.aclose()
+            self._http = None
 
     async def _run(self):
         logger.info("[Polling] Started.")
         while self._running:
             try:
                 await self._tick()
-            except  UserNotAuthenticatedException as exc:
-                logger.error(f"[Polling] Error: {exc}", exc_info=True)
+            except UserNotAuthenticatedException as exc:
+                logger.error(f"[Polling] Auth error: {exc}", exc_info=True)
                 self._interval = self.max_interval
+            except asyncio.CancelledError:
+                raise
             except Exception as exc:
-                logger.error(f"[Polling] Error: {exc}", exc_info=True)
+                logger.error(f"[Polling] Unexpected error: {exc}", exc_info=True)
+
             logger.debug(f"[Polling] Waiting {self._interval}s...")
             await asyncio.sleep(self._interval)
 
@@ -107,36 +96,26 @@ class SpotifyPollingService:
         if response.status_code == 204:
             logger.debug("[Polling] No track playing.")
             self._interval = min(self._interval * 2, self.max_interval)
-            logger.debug(
-                f"[Polling] Music stopped → increasing interval to {self._interval}s"
-            )
 
             if self._current_track_id is not None:
-                # Aumentar o tempo de espera do polling
-
                 logger.info("[Polling] Track stopped.")
                 await self._fire(
                     self.on_track_stop,
                     {"id": self._current_track_id, "progress_ms": None},
                 )
-
                 self._current_track_id = None
             return
 
-        if self._interval != self.interval:
-            logger.info(
-                f"[Polling] Music playing again → resetting interval to {self.interval}s"
-            )
         self._interval = self.interval
 
         data = response.json()
         track = data.get("item")
         progress_ms = data.get("progress_ms")
+
         if not track:
             return
 
         track_id = track.get("id")
-
         event_payload = {
             "id": track_id,
             "name": track["name"],
@@ -144,43 +123,31 @@ class SpotifyPollingService:
             "progress_ms": progress_ms,
         }
 
-        # Primeira música tocando
         if not self._current_track_id:
             logger.info("[Polling] First track playing.")
             self._current_track_id = track_id
-
             await self._fire(self.on_track_start, event_payload)
             await self._notify_webhook(event_payload)
             return
 
-        # Troca de música
         if track_id != self._current_track_id:
             logger.info("[Polling] Track changed.")
             self._current_track_id = track_id
-
             await self._fire(self.on_track_change, event_payload)
             await self._notify_webhook(event_payload)
 
     async def _notify_webhook(self, payload: dict):
-        logger.info("[Webhook] Notifying...")
-        if not self.webhook_url:
+        if not self.webhook_url or not self._http:
             return
 
         try:
+            logger.info("[Webhook] Notifying...")
             await self._http.post(self.webhook_url, json=payload)
             logger.info("[Webhook] Event sent.")
         except Exception as exc:
             logger.error(f"[Webhook] Error: {exc}", exc_info=True)
 
-
     def add_hook(self, event: str, callback: HOOKSTYPES):
-        """
-        Registra um callback para um dos eventos:
-
-        • "start"  → música começou
-        • "change" → trocou de música
-        • "stop"   → música parou
-        """
         if event not in EVENT_TYPES:
             raise ValueError(
                 f"Unknown event '{event}'. Use one of: {', '.join(EVENT_TYPES)}"
@@ -196,14 +163,12 @@ class SpotifyPollingService:
     async def _fire(self, hooks: list[HOOKSTYPES], data: dict):
         for hook in hooks:
             await self._fire_async(hook, data)
-                
-    
-    
+
     async def _fire_async(self, hook, data):
         try:
             if inspect.iscoroutinefunction(hook):
                 await hook(data)
             else:
                 hook(data)
-        except Exception as e:
-            logger.error(f"Hook error: {e}", exc_info=True)
+        except Exception as exc:
+            logger.error(f"Hook error: {exc}", exc_info=True)

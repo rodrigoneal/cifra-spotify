@@ -1,6 +1,6 @@
-import pytest
-import asyncio
 from unittest.mock import AsyncMock, MagicMock, patch
+
+import pytest
 
 from src.cifra_spotify.spotify.pooling import SpotifyPollingService
 from src.cifra_spotify.spotify.spotify import SpotifyAPI
@@ -68,9 +68,7 @@ async def test_tick_track_change_triggers_change_hook():
     def on_change(event):
         hook_called.append(event)
 
-    service = SpotifyPollingService(
-        api, on_track_change=on_change, webhook_url=None
-    )
+    service = SpotifyPollingService(api, on_track_change=on_change, webhook_url=None)
     service._current_track_id = "1"
 
     await service._tick()
@@ -107,7 +105,12 @@ async def test_fire_supports_async_hooks():
 @pytest.mark.asyncio
 async def test_notify_webhook_post_called():
     """Deve chamar _http.post com payload correto."""
-    fake_track = {"id": "1", "name": "Song", "artists": [{"name": "Artist"}], "progress_ms": 123}
+    fake_track = {
+        "id": "1",
+        "name": "Song",
+        "artists": [{"name": "Artist"}],
+        "progress_ms": 123,
+    }
 
     api = MagicMock(spec=SpotifyAPI)
     api.get_current_track = AsyncMock()

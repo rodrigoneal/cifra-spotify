@@ -23,4 +23,8 @@ def parse_cifra_page(
         tablatures = pre.find_all("span", class_="tablatura")
         for t in tablatures:
             t.decompose()
-    return {"tom": tom_texto, "cifra": str(pre), "music_name": music_name}
+    return {
+        "tom": tom_texto.replace("tom:", ""),
+        "cifra": str(pre),
+        "music_name": music_name,
+    }

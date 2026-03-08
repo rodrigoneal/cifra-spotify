@@ -3,10 +3,11 @@ from typing import Annotated
 from fastapi import APIRouter, Query, status
 
 from src.cifra_spotify.api.deps import SPOTIFYDEPS
-from src.cifra_spotify.app.custom_exceptions.exceptions import \
-    PlaylistSeachException
-from src.cifra_spotify.app.schemas.search_schema import (PlaylistsResponse,
-                                                         SpotifySearchResponse)
+from src.cifra_spotify.app.custom_exceptions.exceptions import PlaylistSeachException
+from src.cifra_spotify.app.schemas.search_schema import (
+    PlaylistsResponse,
+    SpotifySearchResponse,
+)
 
 router = APIRouter(prefix="/api/playlist", tags=["PLAYLIST"])
 

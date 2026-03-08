@@ -1,8 +1,7 @@
-import os
 import time
+from unittest.mock import AsyncMock, mock_open, patch
+
 import pytest
-from unittest.mock import patch, mock_open, AsyncMock
-import httpx
 
 from src.cifra_spotify.spotify.auth import SpotifyAuth
 
@@ -44,16 +43,18 @@ async def test_exchange_code_for_token(spotify_auth):
     # Criar mock do response
     mock_response = AsyncMock()
     mock_response.status_code = 200
-    mock_response.json =  AsyncMock(return_value={
-        "access_token": "new_access",
-        "refresh_token": "new_refresh",
-        "expires_in": 3600,
-    })
-    
+    mock_response.json = AsyncMock(
+        return_value={
+            "access_token": "new_access",
+            "refresh_token": "new_refresh",
+            "expires_in": 3600,
+        }
+    )
 
-    with patch("httpx.AsyncClient.post", return_value=mock_response) as mock_post, \
-         patch.object(spotify_auth, "_save_to_file") as mock_save:
-
+    with (
+        patch("httpx.AsyncClient.post", return_value=mock_response) as mock_post,
+        patch.object(spotify_auth, "_save_to_file") as mock_save,
+    ):  # noqa E501
         data = await spotify_auth.exchange_code_for_token("code123")
         breakpoint()
 
@@ -69,7 +70,10 @@ async def test_exchange_code_for_token(spotify_auth):
 @patch.object(SpotifyAuth, "_save_to_file")
 async def test_refresh_access_token(mock_save, mock_post, spotify_auth):
     spotify_auth.refresh_token = "rtoken"
-    mock_post.return_value.json.return_value = {"access_token": "access2", "expires_in": 3600}
+    mock_post.return_value.json.return_value = {
+        "access_token": "access2",
+        "expires_in": 3600,
+    }
     mock_post.return_value.status_code = 200
 
     data = await spotify_auth.refresh_access_token()

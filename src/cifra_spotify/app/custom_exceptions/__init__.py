@@ -12,10 +12,14 @@ def register_exception_handlers(app: FastAPI) -> FastAPI:
     app.add_exception_handler(
         exc_handler.PlaylistSeachException, exc_handler.playlist_erro_handler
     )
-    
+
     app.add_exception_handler(
         exc_handler.UserNotAuthenticatedException,
         exc_handler.user_not_authenticated_exception_handler,
+    )
+
+    app.add_exception_handler(
+        exc_handler.NotPlayeringException, exc_handler.not_playing_exception
     )
 
     return app
