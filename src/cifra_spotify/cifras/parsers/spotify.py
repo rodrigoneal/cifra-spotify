@@ -1,7 +1,8 @@
 from dataclasses import dataclass
 
-from cifra_spotify.cifras.util import normalize_track_title
-from cifra_spotify.spotify.spotify import SpotifyAPI
+from src.cifra_spotify.app.custom_exceptions.exceptions import NotPlayeringException
+from src.cifra_spotify.cifras.util import normalize_track_title
+from src.cifra_spotify.spotify.spotify import SpotifyAPI
 
 
 @dataclass
@@ -26,7 +27,9 @@ async def get_current_track_with_genres(spotify: SpotifyAPI) -> SongData | None:
     current = await spotify.get_current_track()
 
     if current.status_code == 204:
-        return None
+        raise NotPlayeringException(
+            message="No track is currently playing", status_code=404
+        )
 
     data = current.json()
     item = data.get("item")

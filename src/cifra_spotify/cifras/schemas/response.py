@@ -14,9 +14,6 @@ class ChordMetadata(BaseModel):
 
 
 class ChordResult(BaseModel):
-    id: Optional[str] = Field(
-        default=None, description="Identificador único opcional do resultado."
-    )
     title: str = Field(..., description="Título da música.")
     artist: Optional[str] = Field(default=None, description="Nome do artista ou banda.")
     artist_spotify_id: Optional[str] = Field(

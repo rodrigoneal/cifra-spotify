@@ -1,14 +1,12 @@
-from http import HTTPStatus
 from typing import Annotated
 
 from fastapi import APIRouter, Query
 
 from cifra_spotify.api.deps import SPOTIFYDEPS
-from cifra_spotify.app.custom_exceptions.exceptions import NotPlayeringException
 from cifra_spotify.cifras.cifra_base import Instruments
 from cifra_spotify.cifras.cifra_club import CifraClub
 from cifra_spotify.cifras.enum import SitesCifra
-from cifra_spotify.cifras.parsers.spotify import get_current_track_with_genres, parser_spotify
+from cifra_spotify.cifras.parsers.spotify import get_current_track_with_genres
 from cifra_spotify.cifras.schemas.response import ChordSearchResponse
 from cifra_spotify.cifras.util import improve_response
 

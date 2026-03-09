@@ -181,8 +181,6 @@ def compare_track(text1: str, text2: str, threshold: int = 80):
     }
 
 
-
-
 def html_to_text(html: str) -> str:
     text = re.sub(r"</?(pre|b)>", "", html)
     text = re.sub(r"<[^>]+>", "", text)

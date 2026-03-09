@@ -131,14 +131,18 @@ class CifraClub(Cifra):
                     music_match_result = compare_track(
                         music_api_name, music, threshold=80
                     )
-                    singer_match_result = compare_artist_name(
-                        singer_api_name, singer, threshold=80
-                    )
+                    if len(musics) == 1:
+                        singer_match_result = compare_artist_name(
+                            singer_api_name, singer, threshold=80
+                        )
+                    else:
+                        singer_match_result = {"match": True}
+
                     if (
                         not music_match_result["match"]
                         or not singer_match_result["match"]
                     ):
-                        logger.info(
+                        logger.error(
                             f"Music not found: {music_api_name} - {singer_api_name}"
                         )
                         continue
